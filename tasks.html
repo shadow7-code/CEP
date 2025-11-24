@@ -34,33 +34,28 @@
           id="open-task-modal"
           class="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-medium hover:shadow-lg transition-all duration-300 tilt-hover"
         >
-           Add New Task
+         Add New Task
         </button>
       </div>
 
-      <!-- Modal Background -->
+      <!-- Add Task Form (On Page) -->
       <div 
-        id="task-modal-overlay" 
-        class="hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
-      ></div>
-
-      <!-- Add Task Modal -->
-      <div 
-        id="task-modal" 
-        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300"
+        id="task-form-container" 
+        class="hidden bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-xl mb-8 transition-all duration-300"
       >
-        <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add New Task</h2>
-            <button 
-              id="close-task-modal"
-              class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add New Task</h2>
+          <button 
+            id="close-task-form"
+            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        
 
           <form id="add-task-form" class="space-y-4">
             <div>
@@ -110,7 +105,7 @@
             <!-- Category Selection -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Category</label>
-              <div class="grid grid-cols-3 gap-3">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <label class="category-option relative cursor-pointer">
                   <input type="radio" name="task-category" value="theory" id="category-theory" class="peer sr-only" checked>
                   <div class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-500 dark:hover:border-blue-400 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 peer-checked:text-blue-600 dark:peer-checked:text-blue-400">
@@ -140,6 +135,36 @@
                     <span class="text-sm font-medium">Assignment</span>
                   </div>
                 </label>
+
+                <label class="category-option relative cursor-pointer">
+                  <input type="radio" name="task-category" value="study" id="category-study" class="peer sr-only">
+                  <div class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-cyan-500 dark:hover:border-cyan-400 transition-all peer-checked:border-cyan-500 peer-checked:bg-cyan-50 dark:peer-checked:bg-cyan-900/30 peer-checked:text-cyan-600 dark:peer-checked:text-cyan-400">
+                    <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span class="text-sm font-medium">Study</span>
+                  </div>
+                </label>
+
+                <label class="category-option relative cursor-pointer">
+                  <input type="radio" name="task-category" value="project" id="category-project" class="peer sr-only">
+                  <div class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-orange-500 dark:hover:border-orange-400 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/30 peer-checked:text-orange-600 dark:peer-checked:text-orange-400">
+                    <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span class="text-sm font-medium">Project</span>
+                  </div>
+                </label>
+
+                <label class="category-option relative cursor-pointer">
+                  <input type="radio" name="task-category" value="extra" id="category-extra" class="peer sr-only">
+                  <div class="flex flex-col items-center justify-center p-4 rounded-2xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-pink-500 dark:hover:border-pink-400 transition-all peer-checked:border-pink-500 peer-checked:bg-pink-50 dark:peer-checked:bg-pink-900/30 peer-checked:text-pink-600 dark:peer-checked:text-pink-400">
+                    <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-sm font-medium">Extra</span>
+                  </div>
+                </label>
               </div>
             </div>
             
@@ -152,14 +177,13 @@
               </button>
               <button 
                 type="button"
-                id="cancel-task-modal"
+                id="cancel-task-form"
                 class="px-8 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl font-medium hover:shadow-lg transition-all duration-300"
               >
                 Cancel
               </button>
             </div>
           </form>
-        </div>
       </div>
 
       <!-- Filters -->
@@ -212,43 +236,31 @@
         });
       });
 
-    // Modal functionality
+    // Form functionality (on page)
     const openBtn = document.getElementById('open-task-modal');
-    const closeBtn = document.getElementById('close-task-modal');
-    const cancelBtn = document.getElementById('cancel-task-modal');
-    const modal = document.getElementById('task-modal');
-    const overlay = document.getElementById('task-modal-overlay');
+    const closeBtn = document.getElementById('close-task-form');
+    const cancelBtn = document.getElementById('cancel-task-form');
+    const formContainer = document.getElementById('task-form-container');
     const form = document.getElementById('add-task-form');
 
-    function openModal() {
-      modal.classList.remove('hidden');
-      overlay.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
+    function openForm() {
+      formContainer.classList.remove('hidden');
+      formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function closeModal() {
-      modal.classList.add('hidden');
-      overlay.classList.add('hidden');
-      document.body.style.overflow = 'auto';
+    function closeForm() {
+      formContainer.classList.add('hidden');
       form.reset();
     }
 
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', closeModal);
+    openBtn.addEventListener('click', openForm);
+    closeBtn.addEventListener('click', closeForm);
+    cancelBtn.addEventListener('click', closeForm);
 
-    // Close modal on Escape key
+    // Close form on Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-        closeModal();
-      }
-    });
-
-    // Prevent modal closing when clicking inside the modal content
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
+      if (e.key === 'Escape' && !formContainer.classList.contains('hidden')) {
+        closeForm();
       }
     });
   </script>

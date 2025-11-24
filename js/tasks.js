@@ -176,6 +176,18 @@ class TaskManager {
     return colors[priority] || colors.medium;
   }
 
+  getCategoryColor(category) {
+    const colors = {
+      theory: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+      lab: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      assignment: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+      study: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
+      project: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+      extra: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400'
+    };
+    return colors[category] || colors.theory;
+  }
+
   getDeadlineStatus(dueDate) {
     if (!dueDate) return null;
     
@@ -243,11 +255,7 @@ class TaskManager {
                   </span>
                 ` : ''}
                 ${task.category ? `
-                  <span class="px-3 py-1 rounded-xl text-xs font-medium ${
-                    task.category === 'theory' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
-                    task.category === 'lab' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
-                  }">${task.category.charAt(0).toUpperCase() + task.category.slice(1)}</span>
+                  <span class="px-3 py-1 rounded-xl text-xs font-medium ${this.getCategoryColor(task.category)}">${task.category.charAt(0).toUpperCase() + task.category.slice(1)}</span>
                 ` : ''}
                 <span class="px-3 py-1 rounded-xl text-xs font-medium ${this.getPriorityColor(task.priority)}">${task.priority}</span>
               </div>
@@ -296,4 +304,3 @@ let taskManager;
 document.addEventListener('DOMContentLoaded', () => {
   taskManager = new TaskManager();
 });
-

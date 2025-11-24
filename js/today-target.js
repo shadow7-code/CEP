@@ -12,6 +12,9 @@ class TodayTarget {
           theory: 0,
           lab: 0,
           assignment: 0,
+          study: 0,
+          project: 0,
+          extra: 0,
           date: today
         };
       }
@@ -22,6 +25,9 @@ class TodayTarget {
       theory: 0,
       lab: 0,
       assignment: 0,
+      study: 0,
+      project: 0,
+      extra: 0,
       date: today
     };
   }
@@ -39,7 +45,10 @@ class TodayTarget {
     const completed = {
       theory: 0,
       lab: 0,
-      assignment: 0
+      assignment: 0,
+      study: 0,
+      project: 0,
+      extra: 0
     };
     
     tasks.forEach(task => {
@@ -58,18 +67,17 @@ class TodayTarget {
     const target = this.getTarget();
     const completed = this.getCompleted();
     
-    // Update target numbers (only if elements exist - they're on index.html)
-    const theoryEl = document.getElementById('target-theory');
-    const labEl = document.getElementById('target-lab');
-    const assignmentEl = document.getElementById('target-assignment');
+    // Update target numbers for all categories
+    const categories = ['theory', 'lab', 'assignment', 'study', 'project', 'extra'];
     
-    if (theoryEl) theoryEl.textContent = target.theory || 0;
-    if (labEl) labEl.textContent = target.lab || 0;
-    if (assignmentEl) assignmentEl.textContent = target.assignment || 0;
+    categories.forEach(category => {
+      const el = document.getElementById(`target-${category}`);
+      if (el) el.textContent = target[category] || 0;
+    });
     
     // Calculate progress
-    const totalTarget = (target.theory || 0) + (target.lab || 0) + (target.assignment || 0);
-    const totalCompleted = (completed.theory || 0) + (completed.lab || 0) + (completed.assignment || 0);
+    const totalTarget = categories.reduce((sum, cat) => sum + (target[cat] || 0), 0);
+    const totalCompleted = categories.reduce((sum, cat) => sum + (completed[cat] || 0), 0);
     
     const progressEl = document.getElementById('target-progress-text');
     const progressBar = document.getElementById('target-progress-bar');
@@ -91,23 +99,23 @@ class TodayTarget {
 function showTargetModal() {
   const target = TodayTarget.getTarget();
   
-  const theory = prompt('Set Theory Tasks Target:', target.theory || 0);
-  if (theory !== null) {
-    target.theory = parseInt(theory) || 0;
-  }
+  const categories = [
+    { key: 'theory', label: 'Theory Tasks' },
+    { key: 'lab', label: 'Lab Tasks' },
+    { key: 'assignment', label: 'Assignment Tasks' },
+    { key: 'study', label: 'Study Tasks' },
+    { key: 'project', label: 'Project Tasks' },
+    { key: 'extra', label: 'Extra Tasks' }
+  ];
   
-  const lab = prompt('Set Lab Tasks Target:', target.lab || 0);
-  if (lab !== null) {
-    target.lab = parseInt(lab) || 0;
-  }
-  
-  const assignment = prompt('Set Assignment Target:', target.assignment || 0);
-  if (assignment !== null) {
-    target.assignment = parseInt(assignment) || 0;
-  }
+  categories.forEach(cat => {
+    const input = prompt(`Set ${cat.label} Target:`, target[cat.key] || 0);
+    if (input !== null) {
+      target[cat.key] = parseInt(input) || 0;
+    }
+  });
   
   TodayTarget.saveTarget(target);
   TodayTarget.updateDisplay();
   UI.showToast('Target updated!', 'success');
 }
-
