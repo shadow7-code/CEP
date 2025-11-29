@@ -16,7 +16,9 @@ class Onboarding {
       <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all duration-500 scale-100">
         <div class="text-center mb-6">
           <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <span class="text-white font-bold text-3xl">SS</span>
+            <svg class="relative w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
           </div>
           <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome to StudySaathi! 👋</h2>
           <p class="text-gray-600 dark:text-gray-400">Let's personalize your experience</p>
