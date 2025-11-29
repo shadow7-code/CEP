@@ -134,13 +134,32 @@ class ExamManager {
       return 'bg-gray-100 dark:bg-gray-800';
     }
     
+    // HIGH PRIORITY: 7 days or less - Red
     if (timeRemaining.days <= 7) {
       return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
-    } else if (timeRemaining.days <= 30) {
+    } 
+    // MEDIUM PRIORITY: 8-14 days - Yellow
+    else if (timeRemaining.days <= 14) {
       return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
     }
+    // LOW PRIORITY: More than 14 days - Green
+    else {
+      return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+    }
+  }
+
+  getCountdownGradient(timeRemaining) {
+    if (timeRemaining.passed) {
+      return '';
+    }
     
-    return 'bg-white dark:bg-gray-900';
+    if (timeRemaining.days <= 7) {
+      return 'bg-gradient-to-br from-red-500 to-red-600';
+    } else if (timeRemaining.days <= 14) {
+      return 'bg-gradient-to-br from-yellow-500 to-yellow-600';
+    } else {
+      return 'bg-gradient-to-br from-green-500 to-green-600';
+    }
   }
 
   renderExams() {
@@ -173,9 +192,13 @@ class ExamManager {
     container.innerHTML = sortedExams.map(exam => {
       const timeRemaining = this.getTimeRemaining(exam.date);
       const urgencyColor = this.getUrgencyColor(exam);
+      const countdownGradient = this.getCountdownGradient(timeRemaining);
+      const borderColor = timeRemaining.days <= 7 && !timeRemaining.passed ? 'border-red-300 dark:border-red-700 ring-2 ring-red-500' : 
+                         timeRemaining.days <= 14 && !timeRemaining.passed ? 'border-yellow-300 dark:border-yellow-700 ring-2 ring-yellow-500' : 
+                         !timeRemaining.passed ? 'border-green-300 dark:border-green-700 ring-2 ring-green-500' : 'border-transparent';
       
       return `
-        <div class="${urgencyColor} rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 fade-in transform hover:scale-[1.02] border-2 ${timeRemaining.days <= 7 && !timeRemaining.passed ? 'border-red-300 dark:border-red-700 ring-2 ring-red-500' : timeRemaining.days <= 30 && !timeRemaining.passed ? 'border-yellow-300 dark:border-yellow-700' : 'border-transparent'}">
+        <div class="${urgencyColor} rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 fade-in transform hover:scale-[1.02] border-2 ${borderColor}">
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
               <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">${this.escapeHtml(exam.name)}</h3>
@@ -199,7 +222,7 @@ class ExamManager {
               <p class="text-lg font-bold text-gray-600 dark:text-gray-400">✅ Exam Passed</p>
             </div>
           ` : `
-            <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-4 text-center text-white mb-4 transform hover:scale-105 transition-transform duration-200 shadow-lg">
+            <div class="${countdownGradient} rounded-2xl p-4 text-center text-white mb-4 transform hover:scale-105 transition-transform duration-200 shadow-lg">
               <div class="text-3xl md:text-4xl font-bold mb-1 animate-pulse">
                 ${timeRemaining.days > 0 ? `${timeRemaining.days}${timeRemaining.days === 1 ? ' day' : ' days'}` : 
                   timeRemaining.hours > 0 ? `${timeRemaining.hours}${timeRemaining.hours === 1 ? ' hour' : ' hours'}` :
@@ -207,11 +230,15 @@ class ExamManager {
               </div>
               <p class="text-sm opacity-90">${timeRemaining.days > 0 ? `${timeRemaining.hours}h ${timeRemaining.minutes}m remaining` : 
                 timeRemaining.hours > 0 ? `${timeRemaining.minutes}m remaining` : 'Less than a minute'}</p>
-              ${timeRemaining.days <= 7 ? `
-                <div class="mt-2 pt-2 border-t border-white/20">
+              <div class="mt-2 pt-2 border-t border-white/20">
+                ${timeRemaining.days <= 7 ? `
                   <p class="text-xs opacity-90">⚠️ Study hard! Time is running out!</p>
-                </div>
-              ` : ''}
+                ` : timeRemaining.days <= 14 ? `
+                  <p class="text-xs opacity-90"> Start preparing now!</p>
+                ` : `
+                  <p class="text-xs opacity-90"> You have plenty of time!</p>
+                `}
+              </div>
             </div>
           `}
           
@@ -249,4 +276,3 @@ let examManager;
 document.addEventListener('DOMContentLoaded', () => {
   examManager = new ExamManager();
 });
-

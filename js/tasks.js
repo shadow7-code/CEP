@@ -9,6 +9,133 @@ class TaskManager {
   init() {
     this.renderTasks();
     this.setupEventListeners();
+    this.setupEditModal();
+  }
+
+  setupEditModal() {
+    // Create modal if it doesn't exist
+    if (!document.getElementById('edit-task-modal')) {
+      const modal = document.createElement('div');
+      modal.id = 'edit-task-modal';
+      modal.className = 'hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-2xl max-w-sm w-full">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Task</h2>
+          
+          <form id="edit-task-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Name</label>
+              <input 
+                type="text" 
+                id="edit-task-title" 
+                required
+                class="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter task name..."
+              >
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
+              <input 
+                type="date" 
+                id="edit-task-due-date"
+                class="w-full px-4 py-3 rounded-2xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+              <button 
+                type="submit"
+                class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-medium hover:shadow-lg transition-all duration-300"
+              >
+                Save
+              </button>
+              <button 
+                type="button"
+                id="cancel-edit-btn"
+                class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl font-medium hover:shadow-lg transition-all duration-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    const modal = document.getElementById('edit-task-modal');
+    const form = document.getElementById('edit-task-form');
+    const cancelBtn = document.getElementById('cancel-edit-btn');
+
+    // Close modal on cancel
+    cancelBtn.addEventListener('click', () => this.closeEditModal());
+
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) this.closeEditModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        this.closeEditModal();
+      }
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.saveEditedTask();
+    });
+  }
+
+  openEditModal(taskId) {
+    const task = this.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const modal = document.getElementById('edit-task-modal');
+    const titleInput = document.getElementById('edit-task-title');
+    const dueDateInput = document.getElementById('edit-task-due-date');
+
+    titleInput.value = task.title;
+    dueDateInput.value = task.dueDate ? task.dueDate.split('T')[0] : '';
+
+    // Store current task id for saving
+    modal.dataset.taskId = taskId;
+
+    modal.classList.remove('hidden');
+    titleInput.focus();
+  }
+
+  closeEditModal() {
+    const modal = document.getElementById('edit-task-modal');
+    modal.classList.add('hidden');
+    modal.dataset.taskId = '';
+  }
+
+  saveEditedTask() {
+    const modal = document.getElementById('edit-task-modal');
+    const taskId = modal.dataset.taskId;
+    const titleInput = document.getElementById('edit-task-title');
+    const dueDateInput = document.getElementById('edit-task-due-date');
+
+    const title = titleInput.value.trim();
+    if (!title) {
+      UI.showToast('Task title cannot be empty', 'error');
+      return;
+    }
+
+    const task = this.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    task.title = title;
+    task.dueDate = dueDateInput.value || null;
+
+    Storage.saveTasks(this.tasks);
+    this.renderTasks();
+    this.closeEditModal();
+    UI.showToast('Task updated successfully!', 'success');
   }
 
   setupEventListeners() {
@@ -143,28 +270,50 @@ class TaskManager {
     }
   }
 
-  editTask(id) {
-    const task = this.tasks.find(t => t.id === id);
-    if (!task) return;
-
-    const title = prompt('Edit task title:', task.title);
-    if (title && title.trim()) {
-      task.title = title.trim();
-      const description = prompt('Edit task description:', task.description || '');
-      task.description = description.trim();
-      Storage.saveTasks(this.tasks);
-      this.renderTasks();
-      UI.showToast('Task updated', 'success');
+  getEffectivePriority(task) {
+    // If task is completed, use original priority
+    if (task.completed) return task.priority;
+    
+    // If no due date, use original priority
+    if (!task.dueDate) return task.priority;
+    
+    const now = new Date();
+    const deadline = new Date(task.dueDate);
+    const diff = deadline - now;
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    // Auto-detect priority based on time
+    if (daysLeft < 2) {
+      return 'high';
+    } else if (daysLeft < 4) {
+      return 'medium';
+    } else {
+      return 'low';
     }
   }
 
   getFilteredTasks() {
+    let filtered;
     if (this.filter === 'active') {
-      return this.tasks.filter(t => !t.completed);
+      filtered = this.tasks.filter(t => !t.completed);
     } else if (this.filter === 'completed') {
-      return this.tasks.filter(t => t.completed);
+      filtered = this.tasks.filter(t => t.completed);
+    } else {
+      filtered = this.tasks;
     }
-    return this.tasks;
+    
+    // Sort by completion status first (incomplete above, completed below), then by effective priority
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    return filtered.sort((a, b) => {
+      // Incomplete tasks (false) come before completed tasks (true) - ALWAYS
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      }
+      // Only sort by priority if both have same completion status
+      const priorityA = this.getEffectivePriority(a);
+      const priorityB = this.getEffectivePriority(b);
+      return priorityOrder[priorityA] - priorityOrder[priorityB];
+    });
   }
 
   getPriorityColor(priority) {
@@ -174,6 +323,33 @@ class TaskManager {
       low: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
     };
     return colors[priority] || colors.medium;
+  }
+
+  getPriorityBorderAndGradient(priority) {
+    const styles = {
+      high: {
+        border: 'border-l-4 border-red-500',
+        gradient: 'from-red-500/15 via-red-500/8 via-50% to-transparent dark:from-red-500/25 dark:via-red-500/12'
+      },
+      medium: {
+        border: 'border-l-4 border-yellow-500',
+        gradient: 'from-yellow-500/15 via-yellow-500/8 via-50% to-transparent dark:from-yellow-500/25 dark:via-yellow-500/12'
+      },
+      low: {
+        border: 'border-l-4 border-green-500',
+        gradient: 'from-green-500/15 via-green-500/8 via-50% to-transparent dark:from-green-500/25 dark:via-green-500/12'
+      }
+    };
+    return styles[priority] || styles.medium;
+  }
+
+  getDeadlineStatusColor(priority) {
+    const colors = {
+      high: 'bg-red-500 text-white',
+      medium: 'bg-yellow-500 text-white',
+      low: 'bg-green-500 text-white'
+    };
+    return colors[priority] || 'bg-blue-500 text-white';
   }
 
   getCategoryColor(category) {
@@ -229,9 +405,12 @@ class TaskManager {
 
     container.innerHTML = filteredTasks.map(task => {
       const deadlineStatus = !task.completed ? this.getDeadlineStatus(task.dueDate) : null;
+      const effectivePriority = this.getEffectivePriority(task);
+      const priorityStyle = this.getPriorityBorderAndGradient(effectivePriority);
+      const deadlineStatusColor = deadlineStatus ? this.getDeadlineStatusColor(effectivePriority) : null;
       
       return `
-      <div class="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 fade-in transform hover:scale-[1.02] ${task.completed ? 'opacity-60' : ''} ${deadlineStatus && deadlineStatus.status === 'overdue' ? 'ring-2 ring-red-500' : ''}">
+      <div class="bg-gradient-to-r ${priorityStyle.gradient} bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 fade-in transform hover:scale-[1.02] ${task.completed ? 'opacity-40' : ''} ${deadlineStatus && deadlineStatus.status === 'overdue' ? 'ring-2 ring-red-500' : ''} ${priorityStyle.border}">
         <div class="flex items-start space-x-4">
           <button onclick="taskManager.toggleTask('${task.id}')" class="mt-1 flex-shrink-0 w-6 h-6 rounded-lg border-2 ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-gray-600'} flex items-center justify-center transition-all duration-200 hover:scale-125 hover:shadow-md">
             ${task.completed ? `
@@ -241,12 +420,13 @@ class TaskManager {
             ` : ''}
           </button>
           
-          <div class="flex-1 min-w-0">
-            <div class="flex items-start justify-between mb-2 flex-wrap gap-2">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white ${task.completed ? 'line-through' : ''}">${task.title}</h3>
-              <div class="flex items-center space-x-2">
+          <div class="flex-1 min-w-0 w-full">
+            <div class="flex items-start justify-between mb-3 flex-wrap gap-2">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white ${task.completed ? 'line-through' : ''} break-words">${task.title}</h3>
+              
+              <div class="flex flex-wrap items-center gap-2">
                 ${deadlineStatus ? `
-                  <span class="px-3 py-1 rounded-xl text-xs font-bold ${deadlineStatus.color} animate-pulse">
+                  <span class="px-3 py-1 rounded-xl text-xs font-bold ${deadlineStatusColor} animate-pulse whitespace-nowrap">
                     ${deadlineStatus.status === 'overdue' ? `⚠️ Overdue by ${deadlineStatus.days} days` : 
                       deadlineStatus.status === 'today' ? '⚠️ Due Today!' :
                       deadlineStatus.status === 'urgent' ? `⏰ ${deadlineStatus.days} days left` :
@@ -257,14 +437,16 @@ class TaskManager {
                 ${task.category ? `
                   <span class="px-3 py-1 rounded-xl text-xs font-medium ${this.getCategoryColor(task.category)}">${task.category.charAt(0).toUpperCase() + task.category.slice(1)}</span>
                 ` : ''}
-                <span class="px-3 py-1 rounded-xl text-xs font-medium ${this.getPriorityColor(task.priority)}">${task.priority}</span>
+                <span class="px-3 py-1 rounded-xl text-xs font-medium ${this.getPriorityColor(effectivePriority)}">
+                  ${effectivePriority.charAt(0).toUpperCase() + effectivePriority.slice(1)}
+                </span>
               </div>
             </div>
             
             ${task.description ? `<p class="text-gray-600 dark:text-gray-400 mb-3 text-sm">${task.description}</p>` : ''}
             
-            <div class="flex items-center justify-between flex-wrap gap-2">
-              <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 ${task.dueDate ? `
                   <div class="flex items-center space-x-1 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,15 +458,15 @@ class TaskManager {
                 <span class="text-xs">${UI.getRelativeTime(task.createdAt)}</span>
               </div>
               
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-2 justify-start">
                 ${!task.completed ? `
-                  <button onclick="taskManager.editTask('${task.id}')" class="p-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:scale-110 transition-all duration-200" title="Edit task">
+                  <button onclick="taskManager.openEditModal('${task.id}')" class="p-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:scale-110 transition-all duration-200">
                     <svg class="w-4 h-4 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                 ` : ''}
-                <button onclick="taskManager.deleteTask('${task.id}')" class="p-2 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 hover:scale-110 transition-all duration-200" title="Delete task">
+                <button onclick="taskManager.deleteTask('${task.id}')" class="p-2 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 hover:scale-110 transition-all duration-200">
                   <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
