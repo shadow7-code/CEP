@@ -80,17 +80,18 @@
 
           <!-- Timer Controls -->
           <div class="flex justify-center items-center space-x-4">
-            <button
-              onclick="timerManager.reset()"
-              id="reset-btn"
-              class="p-4 rounded-2xl bg-white bg-opacity-20 text-white hover:bg-opacity-30 transition-all duration-300 hover:scale-110"
-              title="Reset timer"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-            
+          <button
+            onclick="timerManager.reset()"
+            id="reset-btn"
+            class="p-4 rounded-2xl bg-white bg-opacity-20 text-white hover:bg-opacity-30 transition-all duration-300 hover:scale-110"
+            title="Reset timer"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          
+          <div class="flex items-center space-x-3">
             <button
               onclick="timerManager.toggle()"
               id="start-pause-btn"
@@ -98,6 +99,15 @@
             >
               <span id="btn-text">Start</span>
             </button>
+            <button
+              onclick="timerManager.stopSession()"
+              id="stop-btn"
+              class="px-6 py-4 rounded-2xl bg-white bg-opacity-20 text-white font-semibold hover:bg-opacity-30 transition-all duration-300 hover:shadow-lg hidden"
+              title="Stop and save session"
+            >
+              Stop
+            </button>
+          </div>
           </div>
         </div>
       </div>

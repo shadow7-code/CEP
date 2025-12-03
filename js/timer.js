@@ -92,43 +92,18 @@ class TimerManager {
 
   complete() {
     this.pause();
-    
-    // Calculate actual time studied (in case user paused/resumed)
-    const actualMinutes = (this.totalTime - this.timeLeft) / 60;
-    
-    // Award XP and update stats
-    const xpEarned = Math.floor(actualMinutes / 5); // 1 XP per 5 minutes
-    if (xpEarned > 0) {
-      Storage.addXP(xpEarned);
+    this.finalizeSession({ completed: true });
+    this.reset();
+  }
+
+  stopSession() {
+    const elapsedSeconds = this.getElapsedSeconds();
+    if (elapsedSeconds <= 0) {
+      return;
     }
-    
-    const stats = Storage.getStats();
-    Storage.updateStats({
-      totalStudyTime: (stats.totalStudyTime || 0) + actualMinutes,
-      sessionsCompleted: (stats.sessionsCompleted || 0) + 1
-    });
-    
-    // Save session history
-    Storage.addTimerSession({
-      mode: 'study',
-      duration: this.totalTime - this.timeLeft,
-      completed: true,
-      date: new Date().toISOString()
-    });
-    
-    if (typeof UI !== 'undefined') {
-      UI.showToast(`Study session complete! +${xpEarned} XP`, 'success');
-      
-      // Celebration effect on timer circle
-      const timerCircle = document.getElementById('timer-circle');
-      if (timerCircle) {
-        UI.celebrate(timerCircle.parentElement);
-      }
-    }
-    
-    // Update streak
-    Storage.updateStreak();
-    this.updateStats();
+
+    this.pause();
+    this.finalizeSession({ completed: false });
     this.reset();
   }
 
@@ -151,15 +126,69 @@ class TimerManager {
     }
   }
 
+  getElapsedSeconds() {
+    return Math.max(0, this.totalTime - this.timeLeft);
+  }
+
+  finalizeSession({ completed }) {
+    const elapsedSeconds = this.getElapsedSeconds();
+    if (elapsedSeconds <= 0) return;
+
+    const actualMinutes = elapsedSeconds / 60;
+    const xpEarned = Math.floor(actualMinutes / 5); // 1 XP per 5 minutes
+    if (xpEarned > 0) {
+      Storage.addXP(xpEarned);
+    }
+
+    const stats = Storage.getStats();
+    Storage.updateStats({
+      totalStudyTime: (stats.totalStudyTime || 0) + actualMinutes,
+      sessionsCompleted: (stats.sessionsCompleted || 0) + 1
+    });
+
+    Storage.addTimerSession({
+      mode: 'study',
+      duration: elapsedSeconds,
+      completed,
+      stoppedEarly: !completed
+    });
+
+    if (typeof UI !== 'undefined') {
+      if (completed) {
+        UI.showToast(`Study session complete! +${xpEarned} XP`, 'success');
+        const timerCircle = document.getElementById('timer-circle');
+        if (timerCircle) {
+          UI.celebrate(timerCircle.parentElement);
+        }
+      } else {
+        const roundedMinutes = Math.max(1, Math.round(actualMinutes));
+        const xpText = xpEarned > 0 ? ` +${xpEarned} XP` : '';
+        UI.showToast(`Session saved (${roundedMinutes}m)${xpText}`, 'info');
+      }
+    }
+
+    Storage.updateStreak();
+    this.updateStats();
+  }
+
   updateButton() {
     const btn = document.getElementById('start-pause-btn');
     const btnText = document.getElementById('btn-text');
+    const stopBtn = document.getElementById('stop-btn');
     
     if (btn && btnText) {
       if (this.isRunning) {
         btnText.textContent = 'Pause';
       } else {
         btnText.textContent = this.timeLeft <= 0 ? 'Reset' : 'Start';
+      }
+    }
+
+    if (stopBtn) {
+      if (this.isRunning) {
+        stopBtn.classList.remove('hidden');
+      } else {
+        stopBtn.classList.add('hidden');
       }
     }
   }
